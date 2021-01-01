@@ -1,0 +1,11 @@
+{
+    "scripts": {
+        "run": "node server.js"
+    },
+    "dependencies": {
+        "websocket-game-lobby": "^4.1.1"
+    },
+    "devDependencies": {
+        "http-single-serve": "^1.0.0"
+    }
+}

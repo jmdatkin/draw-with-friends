@@ -1,23 +1,12 @@
 {
-  "name": "bootstrap-site-template",
-  "version": "1.0.0",
-  "description": "Starter template for Bootstrap websites",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "build": "webpack",
+    "build-explicit": "webpack --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jmdatkin/bootstrap-site-template.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jmdatkin/bootstrap-site-template/issues"
-  },
-  "homepage": "https://github.com/jmdatkin/bootstrap-site-template#readme",
   "devDependencies": {
     "autoprefixer": "^10.1.0",
     "css-loader": "^5.0.1",

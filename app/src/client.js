@@ -183,6 +183,12 @@ const App = (function () {
                 this.boundStroke = stroke;
             }
 
+            StrokeStream.prototype.update = function(stroke) {
+                
+            }
+
+            let strokeStreams = [];
+
             const Renderer_exported = {
                 drawStroke: drawStroke,
                 clear: clear

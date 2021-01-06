@@ -1,5 +1,6 @@
 import { WebSocketGameLobbyClient } from 'websocket-game-lobby-client';
 import { v4 as uuidv4 } from 'uuid';
+const tinycolor = require("tinycolor2");
 
 const App = (function () {
     const gameLobby = new WebSocketGameLobbyClient({
@@ -18,6 +19,62 @@ const App = (function () {
         return Math.sqrt(distSq(x0,y0,x1,y1));
     };
 
+    const UI = (function() {
+        //Color picker
+        const ColorPicker = (function() {
+            const colorSquareWrapper = document.getElementById("color-square-wrapper");
+            const colorSquare = document.getElementById("color-square");
+
+            const huePickerWrapper = document.getElementById("hue-picker-wrapper");
+            const huePicker = document.getElementById("hue-picker");
+
+            const options = {
+                size: 150,
+
+                huePicker: {
+                    width: 17
+                }
+            };
+
+            const init = function() {
+                colorSquareWrapper.style.width = `${options.size}px`;
+                colorSquareWrapper.style.height = `${options.size}px`;
+                colorSquare.setAttribute("width", options.size);
+                colorSquare.setAttribute("height", options.size);
+
+                huePickerWrapper.style.width = `${options.huePicker.width}px`;
+                huePickerWrapper.style.height = `${options.size}px`;
+                huePicker.setAttribute("width", 1);
+                huePicker.style.width = `${options.huePicker.width}px`;     //Scale canvas with CSS
+                huePicker.style.height = `${options.size}px`;     
+                huePicker.setAttribute("height", options.size);
+            };
+
+            const drawHues = function() {
+                let s = 100, l = 50;
+                let hue = 0;
+                let hexColor;
+                let huePickerCtx = huePicker.getContext("2d");
+                for (let i=0; i<options.size; i++) {
+                    hue = (i/options.size)*360;
+                    console.log(hue);
+                    hexColor = tinycolor({h: hue, s: s, l: l}).toHexString();
+                    huePickerCtx.fillStyle = hexColor;
+                    huePickerCtx.fillRect(0,i,1,i);
+                }
+            };
+
+
+            const drawColor = function() {
+
+            };
+
+            init();
+            drawHues();
+
+        })();
+    })();
+
     const Canvas = (function () {
         //DOM references
         const mainCanvas = document.getElementById("main-canv");
@@ -27,20 +84,16 @@ const App = (function () {
         const mainCtx = mainCanvas.getContext("2d");
 
         //Static constants
-        const width = 1600;
-        const height = 900;
+        const width = 1000;
+        const height = 800;
 
-        // const offsetLeft = mainCanvas.offsetLeft;
-        // const offsetTop = mainCanvas.offsetTop;
+        var canvasBbox = canvasWrapper.getBoundingClientRect();
 
-        var offsetLeft = canvasWrapper.getBoundingClientRect().left;
-        var offsetTop = canvasWrapper.getBoundingClientRect().top;
+        const updateCanvasBoundingBox = () => canvasBbox = canvasWrapper.getBoundingClientRect();
 
         //Binding offset vars to window resize
-        window.onresize = () => {
-            offsetLeft = canvasWrapper.getBoundingClientRect().left;
-            offsetTop = canvasWrapper.getBoundingClientRect().top;
-        };
+        window.onresize = updateCanvasBoundingBox;
+;
 
         const setElementDims = function(el,w,h) {
             el.setAttribute("width", w);
@@ -61,18 +114,31 @@ const App = (function () {
             canvasWrapper.style.width = `${width}px`;
             canvasWrapper.style.height = `${height}px`;
 
+            updateCanvasBoundingBox();
+
             mainCtx.lineWidth = 10;
             mainCtx.lineCap = 'round';
         };
+        init();
 
         //Page coord to canvas coord conversion
         const ptoc = function(c) {
             return {
-                x: c.x - offsetLeft,
-                y: c.y - offsetTop
+                x: c.x - canvasBbox.left,
+                y: c.y - canvasBbox.top
             };
         };
 
+        //Clamps val between min and max
+        const clamp = (val, min, max) => Math.max(min,Math.min(val,max));
+
+        //Clamps a set of coords between absolute canvas coords
+        const clampToCanvas = (coords) => {
+            return {
+                x: clamp(coords.x, canvasBbox.left, canvasBbox.right),
+                y: clamp(coords.y, canvasBbox.top,  canvasBbox.bottom)
+            };
+        };
 
         //Module for managing data points for brush strokes
         const DrawData = (function () {
@@ -149,6 +215,21 @@ const App = (function () {
             //Chained stroke event
             let strokeInProgress = false;
             let currentStroke = null;
+
+            const mouseMoveBox = document.querySelector(".content");
+
+            //const bbox = canvasWrapper.getBoundingClientRect();
+            // const canvasLeft = canvasBbox.left;
+            // const canvasRight = canvasBbox.left + canvasBbox.width;
+            // const canvasTop = canvasBbox.top;
+            // const canvasBottom = canvasBbox.top + canvasBbox.height;
+
+            // console.log(canvasBbox);
+
+            // console.log(`left: ${canvasLeft}
+            // right: ${canvasRight}
+            // top: ${canvasTop}
+            // bottom: ${canvasBottom}`);
             
             //Mouse pos differential to trigger new point added
             const delta = 4;
@@ -157,15 +238,21 @@ const App = (function () {
             const mouseDownHandler = function(e) {
                 currentStroke = new DrawData.Stroke();
                 strokeInProgress = true;
-                let coords = ptoc({x: e.pageX,  y: e.pageY});
+                let coords = ptoc(clampToCanvas({x: e.pageX,  y: e.pageY}));
                 let newPoint = new DrawData.Point(coords.x,coords.y);
                 currentStroke.addPoint(newPoint);
 
-                mainCanvas.addEventListener("mousemove", mouseMoveHandler);
+                mouseMoveBox.addEventListener("mousemove", mouseMoveHandler);
             }
 
             const mouseMoveHandler = function(e) {
-                let coords = ptoc({x: e.pageX,  y: e.pageY});
+                // let clampX = clamp(e.pageX, canvasLeft, canvasRight);
+                // let clampY = clamp(e.pageY, canvasTop, canvasBottom);
+
+                //let coords = {x: clampX, y: clampY};
+                //let coords = ptoc({x: e.pageX,  y: e.pageY});
+                // let coords = ptoc({x: clampX,  y: clampY});
+                let coords = ptoc(clampToCanvas({x: e.pageX,  y: e.pageY}));
                 if (strokeInProgress && currentStroke !== null) {
                     let latestPoint = currentStroke.getLatestPoint();
                     //if (dist(coords.x, coords.y, latestPoint.x, latestPoint.y) > delta
@@ -183,7 +270,7 @@ const App = (function () {
 
             const mouseUpHandler = function() {
                 if (strokeInProgress) {
-                    mainCanvas.removeEventListener("mousemove", mouseMoveHandler);
+                    mouseMoveBox.removeEventListener("mousemove", mouseMoveHandler);
                     strokeInProgress = false;
                     DrawData.addStroke(currentStroke);
                     strokeInProgress = null;
@@ -279,8 +366,6 @@ const App = (function () {
 
         return Canvas_exported;
     })();
-
-    Canvas.init();
 
     // document.getElementById("game-create").addEventListener("click", () => {
     //     gameLobby.send('create');

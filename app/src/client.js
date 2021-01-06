@@ -301,7 +301,7 @@ const App = (function () {
 
             return function() {
                 mainCanvas.addEventListener("mousedown", mouseDownHandler);
-                mainCanvas.addEventListener("mouseup", mouseUpHandler);
+                mouseMoveBox.addEventListener("mouseup", mouseUpHandler);
             };
         })();
         bindEventListeners();

@@ -1,4 +1,6 @@
 $sidebar-width: 250px;
+$app-bar-height: 75px;
+
 $themes: (
     'dark': (
         bgColor: #222,
@@ -13,7 +15,7 @@ $themes: (
 @mixin theme($key, $prop) {
     @each $theme-name, $theme-color in $themes {
         .theme-#{$theme-name} & {
-            #{$key}: map-get(map-get($themes, $theme-name), $prop)
+            #{$key}: map-get(map-get($themes, $theme-name), $prop) !important
         }
     }
 }
@@ -23,11 +25,22 @@ html, body {
     height: 100vh;
     margin: 0;
     padding: 0;
+    @include theme('background-color', 'bgColor');
+    @include theme('color', 'color');
 }
 
 body {
     @include theme('background-color', 'bgColor');
     @include theme('color', 'color');
+    background-color: map-get(map-get($themes, 'dark'), 'bgColor');
+    color: map-get(map-get($themes, 'dark'), 'color');
+}
+
+.app-bar {
+    // width: 100%;
+    // height: $app-bar-height;
+    @include theme('background-color', 'bgColor');
+    @include theme('color', 'color')
 }
 
 .wrapper {
@@ -40,8 +53,20 @@ body {
 
 .sidebar {
     border-right: solid 1px #000;
-    min-width: $sidebar-width;
+    // min-width: $sidebar-width;
     display: flex;
+    flex-basis: $sidebar-width;
+
+    flex-direction: column;
+}
+
+#color-picker {
+    display: flex;
+    justify-content: center;
+}
+
+#color-square-wrapper {
+    margin-right: 10px;
 }
 
 .canvas-wrapper {

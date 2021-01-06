@@ -22,11 +22,18 @@ const App = (function () {
     const UI = (function() {
         //Color picker
         const ColorPicker = (function() {
+
+            const data = {
+                hue: 0
+            };
+
             const colorSquareWrapper = document.getElementById("color-square-wrapper");
             const colorSquare = document.getElementById("color-square");
+            const colorSquareCtx = colorSquare.getContext("2d");
 
             const huePickerWrapper = document.getElementById("hue-picker-wrapper");
             const huePicker = document.getElementById("hue-picker");
+            const huePickerCtx = huePicker.getContext("2d");
 
             const options = {
                 size: 150,
@@ -41,6 +48,7 @@ const App = (function () {
                 colorSquareWrapper.style.height = `${options.size}px`;
                 colorSquare.setAttribute("width", options.size);
                 colorSquare.setAttribute("height", options.size);
+                colorSquareCtx.imageSmoothingEnabled = false;
 
                 huePickerWrapper.style.width = `${options.huePicker.width}px`;
                 huePickerWrapper.style.height = `${options.size}px`;
@@ -54,23 +62,34 @@ const App = (function () {
                 let s = 100, l = 50;
                 let hue = 0;
                 let hexColor;
-                let huePickerCtx = huePicker.getContext("2d");
                 for (let i=0; i<options.size; i++) {
                     hue = (i/options.size)*360;
-                    console.log(hue);
                     hexColor = tinycolor({h: hue, s: s, l: l}).toHexString();
                     huePickerCtx.fillStyle = hexColor;
-                    huePickerCtx.fillRect(0,i,1,i);
+                    huePickerCtx.fillRect(0,i,1,1);
                 }
             };
 
 
             const drawColor = function() {
-
+                let s, l;
+                let hexColor;
+                //Luminance on X
+                for (let i=0; i<=options.size; i++) {
+                    //Saturation on Y
+                    for (let j=0; j<=options.size; j++) {
+                        s = Math.floor((i/options.size)*100);
+                        l = 100 - Math.floor((j/options.size)*100);
+                        hexColor = tinycolor({h: data.hue, s: s, l: l}).toHexString();
+                        colorSquareCtx.fillStyle = hexColor;
+                        colorSquareCtx.fillRect(i,j,1,1);
+                    }
+                }
             };
 
             init();
             drawHues();
+            drawColor();
 
         })();
     })();
